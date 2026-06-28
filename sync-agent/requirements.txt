@@ -1,0 +1,9 @@
+# Sync Agent — extração Oracle + carga Postgres (Supabase)
+oracledb==3.3.0            # Oracle Thick Mode (mesma do app Streamlit)
+pandas==2.3.1              # DataFrames (mesma do app Streamlit)
+psycopg[binary]>=3.2,<3.3  # Postgres: COPY de alta performance
+pydantic-settings>=2.5,<3  # Configuração via .env
+
+# API de disparo manual (Fase 5)
+fastapi>=0.115,<0.116
+uvicorn[standard]>=0.32,<0.35
