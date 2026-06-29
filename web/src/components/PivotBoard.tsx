@@ -130,9 +130,9 @@ export default function PivotBoard({ userEmail }: { userEmail: string }) {
         </div>
       </header>
 
-      <main style={{ padding: "20px 24px 32px", maxWidth: 1320, margin: "0 auto" }}>
+      <main style={{ padding: "20px 24px 36px", maxWidth: 2520, margin: "0 auto" }}>
         {/* ---------- KPIs ---------- */}
-        <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
+        <div style={{ display: "flex", gap: 12, marginBottom: 18, maxWidth: 1280 }}>
           {kpis.map((k) => (
             <div key={k.label} style={kpiCard}>
               <div style={kpiLabel}>{k.label}</div>
