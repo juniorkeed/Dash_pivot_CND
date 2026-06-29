@@ -40,7 +40,8 @@ class Settings(BaseSettings):
     # Token simples exigido no header x-sync-token do endpoint POST /sync.
     sync_token: str = ""
     # Janela padrão (dias para trás) quando /sync é chamado sem datas explícitas.
-    sync_default_days: int = 30
+    # 60 dias cobre vendas novas + retroativos/cancelamentos recentes.
+    sync_default_days: int = 60
 
 
 settings = Settings()

@@ -19,6 +19,7 @@ web/.next/
 web/out/
 web/build/
 .vercel/
+*.tsbuildinfo
 
 # ===== Supabase CLI =====
 supabase/.branches/

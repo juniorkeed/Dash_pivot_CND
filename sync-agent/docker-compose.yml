@@ -1,0 +1,15 @@
+services:
+  sync-agent:
+    build: .
+    container_name: cnd-sync-agent
+    # Bind SOMENTE em localhost: a página/endpoint não ficam expostos na rede.
+    ports:
+      - "127.0.0.1:8010:8000"
+    # Credenciais (Oracle + Supabase + token) vêm do .env do host.
+    env_file:
+      - .env
+    environment:
+      # Sobrescreve o caminho do Instant Client do .env (que aponta p/ Windows).
+      ORACLE_CLIENT_DIR: /opt/oracle/instantclient
+      TZ: America/Sao_Paulo
+    restart: unless-stopped
