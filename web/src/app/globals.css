@@ -1,5 +1,23 @@
 :root {
   color-scheme: light;
+
+  /* ---- Paleta Opção A (claro / clean, destaque âmbar) ---- */
+  --bg: #f7f6f3;          /* fundo da página (branco quente) */
+  --surface: #ffffff;     /* cartões / superfícies */
+  --surface-2: #fbfaf8;   /* superfície sutil */
+  --border: #eceae4;      /* bordas */
+  --border-2: #f2f0eb;    /* bordas internas da tabela */
+  --text: #1c1a17;        /* texto principal */
+  --muted: #8a857c;       /* texto secundário */
+  --muted-2: #a8a299;     /* labels */
+
+  --accent: #e8800c;      /* âmbar */
+  --accent-strong: #c96a06;
+  --accent-soft: #fbeedd; /* tinta âmbar p/ totais/header */
+  --accent-soft-2: #fdf7ee;
+  --accent-ink: #7a4708;  /* texto sobre tinta âmbar */
+
+  --pos: #1a7f4b;         /* variação positiva */
 }
 
 * {
@@ -10,7 +28,19 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  background: #f6f7f9;
-  color: #1a1a1a;
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 120, 0.28);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }

@@ -1,0 +1,124 @@
+/*
+ * Tema "Opção A" para a tabela do react-pivottable.
+ * Importe ESTE arquivo no PivotBoard.tsx, DEPOIS de "react-pivottable/pivottable.css",
+ * e envolva o <PivotTable/> em um elemento com className="pivot-surface".
+ *
+ *   import "react-pivottable/pivottable.css";
+ *   import "./pivot-theme.css";
+ */
+
+.pivot-surface {
+  overflow: auto;
+  max-height: 60vh;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.pivot-surface .pvtTable {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* ---------- Cabeçalho (fixo na rolagem) ---------- */
+.pivot-surface .pvtTable thead tr th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f7f5f1;
+  color: var(--muted);
+  font: 600 10.5px/1.4 var(--font-sans), sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 9px 14px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+/* rótulos de coluna alinhados à direita (são números/períodos) */
+.pivot-surface .pvtTable thead tr th.pvtColLabel {
+  text-align: right;
+  font-family: var(--font-mono), monospace;
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* canto e rótulos de eixo */
+.pivot-surface .pvtTable .pvtAxisLabel,
+.pivot-surface .pvtTable th.pvtTotalLabel {
+  background: #f7f5f1;
+  color: var(--muted);
+}
+
+/* ---------- Rótulos de linha (1ª coluna) ---------- */
+.pivot-surface .pvtTable tbody tr th.pvtRowLabel {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+  font: 600 13px var(--font-sans), sans-serif;
+  color: var(--text);
+  text-align: left;
+  padding: 8px 16px;
+  border: none;
+  border-bottom: 1px solid var(--border-2);
+}
+
+/* ---------- Células de valor ---------- */
+.pivot-surface .pvtTable td.pvtVal {
+  text-align: right;
+  font: 500 12.5px var(--font-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  color: #3a352d;
+  padding: 8px 14px;
+  border: none;
+  border-bottom: 1px solid var(--border-2);
+}
+
+.pivot-surface .pvtTable tbody tr:hover td,
+.pivot-surface .pvtTable tbody tr:hover th.pvtRowLabel {
+  background: var(--accent-soft-2);
+}
+
+/* ---------- Totais de linha / coluna ---------- */
+.pivot-surface .pvtTable td.pvtTotal {
+  text-align: right;
+  font: 600 12.5px var(--font-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: var(--accent-soft-2);
+  padding: 8px 16px;
+  border: none;
+  border-bottom: 1px solid var(--border-2);
+}
+
+.pivot-surface .pvtTable th.pvtTotalLabel {
+  font: 700 11px var(--font-display), sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  border-bottom: 1px solid #f0dcc0;
+}
+
+/* faixa de total (última linha): tinta âmbar */
+.pivot-surface .pvtTable tr:last-child td.pvtTotal {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border-top: 1px solid #f0dcc0;
+}
+
+/* ---------- Total geral ---------- */
+.pivot-surface .pvtTable td.pvtGrandTotal {
+  text-align: right;
+  font: 700 13px var(--font-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+  background: var(--accent);
+  padding: 11px 16px;
+  border: none;
+}

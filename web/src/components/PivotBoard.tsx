@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import "react-pivottable/pivottable.css";
+import "./pivot-theme.css";
 import { aggregatorTemplates, numberFormat } from "react-pivottable/Utilities";
 import TableRenderers from "react-pivottable/TableRenderers";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { formatarMoeda, formatarNumero } from "@/lib/format";
 import { DIMENSOES, MEDIDAS, type DimKey, type MeasureKey } from "@/lib/pivotConfig";
 
 // Só o renderer (sem o painel de arrastar) — controlamos eixos via seletores.
@@ -91,89 +93,236 @@ export default function PivotBoard({ userEmail }: { userEmail: string }) {
 
   const medidaInfo = MEDIDAS.find((m) => m.key === medida)!;
   const aggName = medidaInfo.format === "currency" ? "Soma (R$)" : "Soma (qtd)";
+  const medidaLabel = keyToLabel[medida];
+
+  // KPIs calculados a partir dos dados realmente carregados
+  const totalGeral = useMemo(
+    () => dados.reduce((s, r) => s + Number(r[medidaLabel] ?? 0), 0),
+    [dados, medidaLabel],
+  );
+  const registros = dados.length;
+  const media = registros ? totalGeral / registros : 0;
+  const fmtMedida = (v: number) =>
+    medidaInfo.format === "currency" ? formatarMoeda(v) : formatarNumero(v);
+
+  const kpis = [
+    { label: `${medidaInfo.label} (total)`, value: fmtMedida(totalGeral) },
+    { label: "Combinações", value: formatarNumero(registros) },
+    { label: "Média por combinação", value: fmtMedida(media) },
+  ];
 
   return (
-    <div style={{ padding: 20 }}>
-      <header style={cab}>
-        <h1 style={{ fontSize: 20, margin: 0 }}>📊 Matriz de Vendas</h1>
-        <div style={{ fontSize: 13, color: "#666", display: "flex", gap: 12, alignItems: "center" }}>
-          <span>{userEmail}</span>
+    <div style={pagina}>
+      {/* ---------- Topbar ---------- */}
+      <header style={topbar}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          {/* coloque LOGO.png em /public */}
+          <img src="/LOGO.png" alt="CND" style={{ height: 26, width: "auto", display: "block" }} />
+          <span style={{ width: 1, height: 24, background: "var(--border)" }} />
+          <span style={{ font: "600 16px var(--font-display), sans-serif", color: "var(--text)", letterSpacing: "-.01em" }}>
+            Matriz de Vendas
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
+          <span style={{ fontSize: 13, color: "var(--muted)" }}>{userEmail}</span>
           <button onClick={sair} style={btnSair}>Sair</button>
+          <span style={avatar}>{(userEmail[0] ?? "U").toUpperCase()}</span>
         </div>
       </header>
 
-      <section style={painel}>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
-          <div>
-            <label style={lbl}>De</label>
-            <input style={inp} type="date" value={dtIni} onChange={(e) => setDtIni(e.target.value)} />
-          </div>
-          <div>
-            <label style={lbl}>Até</label>
-            <input style={inp} type="date" value={dtFim} onChange={(e) => setDtFim(e.target.value)} />
-          </div>
-          <div>
-            <label style={lbl}>Medida</label>
-            <select style={inp} value={medida} onChange={(e) => setMedida(e.target.value as MeasureKey)}>
-              {MEDIDAS.map((m) => (
-                <option key={m.key} value={m.key}>{m.label}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <label style={lbl}>Linhas</label>
-        <div style={grupoChips}>
-          {DIMENSOES.map((d) => (
-            <button key={d.key} onClick={() => porLinha(d.key)} style={chip(linhas.includes(d.key))}>
-              {d.label}
-            </button>
+      <main style={{ padding: "20px 24px 32px", maxWidth: 1320, margin: "0 auto" }}>
+        {/* ---------- KPIs ---------- */}
+        <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
+          {kpis.map((k) => (
+            <div key={k.label} style={kpiCard}>
+              <div style={kpiLabel}>{k.label}</div>
+              <div style={kpiValue}>{carregando ? "—" : k.value}</div>
+            </div>
           ))}
         </div>
 
-        <label style={{ ...lbl, marginTop: 10 }}>Colunas</label>
-        <div style={grupoChips}>
-          {DIMENSOES.map((d) => (
-            <button key={d.key} onClick={() => porColuna(d.key)} style={chip(colunas.includes(d.key), "#0d9488")}>
-              {d.label}
-            </button>
-          ))}
+        {/* ---------- Painel de controles ---------- */}
+        <section style={painel}>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 16 }}>
+            <div>
+              <label style={lbl}>De</label>
+              <input style={inp} type="date" value={dtIni} onChange={(e) => setDtIni(e.target.value)} />
+            </div>
+            <div>
+              <label style={lbl}>Até</label>
+              <input style={inp} type="date" value={dtFim} onChange={(e) => setDtFim(e.target.value)} />
+            </div>
+            <div>
+              <label style={lbl}>Medida</label>
+              <div style={segWrap}>
+                {MEDIDAS.map((m) => (
+                  <button key={m.key} onClick={() => setMedida(m.key)} style={seg(m.key === medida)}>
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <label style={lbl}>Linhas</label>
+          <div style={grupoChips}>
+            {DIMENSOES.map((d) => (
+              <button key={d.key} onClick={() => porLinha(d.key)} style={chip(linhas.includes(d.key))}>
+                {d.label}
+              </button>
+            ))}
+          </div>
+
+          <label style={{ ...lbl, marginTop: 12 }}>Colunas</label>
+          <div style={grupoChips}>
+            {DIMENSOES.map((d) => (
+              <button key={d.key} onClick={() => porColuna(d.key)} style={chip(colunas.includes(d.key))}>
+                {d.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* ---------- Estados ---------- */}
+        {erro && <p style={aviso("#c0392b")}>Erro: {erro}</p>}
+        {dims.length === 0 && <p style={aviso("var(--muted)")}>Selecione ao menos uma dimensão.</p>}
+
+        {/* ---------- Matriz ---------- */}
+        <div style={{ position: "relative" }}>
+          <div style={matrizHead}>
+            <span style={{ font: "600 13px var(--font-display), sans-serif", color: "var(--text)" }}>
+              {linhas.map((k) => keyToLabel[k]).join(" · ") || "—"}{" "}
+              <span style={{ color: "#c4beb4" }}>×</span>{" "}
+              {colunas.map((k) => keyToLabel[k]).join(" · ") || "—"}
+            </span>
+            <span style={{ font: "500 11px var(--font-mono), monospace", color: "var(--muted-2)" }}>
+              {carregando ? "carregando…" : `${registros} combinações · ${medidaInfo.label}`}
+            </span>
+          </div>
+          <div className="pivot-surface">
+            <PivotTable
+              data={dados}
+              rows={linhas.map((k) => keyToLabel[k])}
+              cols={colunas.map((k) => keyToLabel[k])}
+              vals={[keyToLabel[medida]]}
+              aggregatorName={aggName}
+              aggregators={aggregators}
+              renderers={TableRenderers}
+              rendererName="Table"
+            />
+          </div>
         </div>
-      </section>
-
-      {erro && <p style={{ color: "#c0392b" }}>Erro: {erro}</p>}
-      {carregando && <p style={{ color: "#666" }}>Carregando…</p>}
-      {dims.length === 0 && <p style={{ color: "#666" }}>Selecione ao menos uma dimensão.</p>}
-
-      <div style={{ background: "#fff", padding: 12, borderRadius: 8, overflow: "auto" }}>
-        <PivotTable
-          data={dados}
-          rows={linhas.map((k) => keyToLabel[k])}
-          cols={colunas.map((k) => keyToLabel[k])}
-          vals={[keyToLabel[medida]]}
-          aggregatorName={aggName}
-          aggregators={aggregators}
-          renderers={TableRenderers}
-          rendererName="Table"
-        />
-      </div>
+      </main>
     </div>
   );
 }
 
-const cab: React.CSSProperties = { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 };
-const painel: React.CSSProperties = { background: "#fff", padding: 16, borderRadius: 8, marginBottom: 16 };
-const lbl: React.CSSProperties = { display: "block", fontSize: 12, color: "#555", marginBottom: 4 };
-const inp: React.CSSProperties = { padding: "7px 9px", border: "1px solid #ccc", borderRadius: 6, fontSize: 14 };
-const grupoChips: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: 6 };
-const btnSair: React.CSSProperties = { padding: "4px 10px", border: "1px solid #ccc", background: "#fff", borderRadius: 6, fontSize: 12, cursor: "pointer" };
-const chip = (on: boolean, cor = "#2563eb"): React.CSSProperties => ({
-  padding: "5px 10px",
-  border: "1px solid",
-  borderColor: on ? cor : "#ccc",
-  background: on ? cor : "#fff",
-  color: on ? "#fff" : "#333",
-  borderRadius: 16,
-  fontSize: 13,
+/* ===================== estilos (Opção A) ===================== */
+const pagina: React.CSSProperties = { minHeight: "100vh", background: "var(--bg)" };
+const topbar: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "16px 24px",
+  background: "var(--surface)",
+  borderBottom: "1px solid var(--border)",
+};
+const avatar: React.CSSProperties = {
+  width: 32,
+  height: 32,
+  borderRadius: "50%",
+  background: "var(--text)",
+  color: "#fff",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  font: "600 12px var(--font-display), sans-serif",
+};
+const btnSair: React.CSSProperties = {
+  padding: "6px 12px",
+  border: "1px solid var(--border)",
+  background: "var(--surface)",
+  borderRadius: 8,
+  fontSize: 12.5,
+  color: "var(--text)",
+  cursor: "pointer",
+};
+const kpiCard: React.CSSProperties = {
+  flex: 1,
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
+  borderRadius: 13,
+  padding: "14px 16px",
+};
+const kpiLabel: React.CSSProperties = {
+  font: "600 10.5px var(--font-sans), sans-serif",
+  letterSpacing: ".06em",
+  textTransform: "uppercase",
+  color: "var(--muted-2)",
+};
+const kpiValue: React.CSSProperties = {
+  font: "600 23px/1.1 var(--font-display), sans-serif",
+  color: "var(--text)",
+  marginTop: 10,
+  fontVariantNumeric: "tabular-nums",
+  letterSpacing: "-.01em",
+};
+const painel: React.CSSProperties = {
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
+  padding: 16,
+  borderRadius: 13,
+  marginBottom: 18,
+};
+const lbl: React.CSSProperties = {
+  display: "block",
+  font: "600 10.5px var(--font-sans), sans-serif",
+  letterSpacing: ".06em",
+  textTransform: "uppercase",
+  color: "var(--muted-2)",
+  marginBottom: 7,
+};
+const inp: React.CSSProperties = {
+  padding: "8px 11px",
+  border: "1px solid #dcd8cf",
+  borderRadius: 9,
+  fontSize: 14,
+  fontFamily: "var(--font-sans), sans-serif",
+  color: "var(--text)",
+  background: "var(--surface)",
+};
+const segWrap: React.CSSProperties = {
+  display: "inline-flex",
+  background: "#f4f2ed",
+  border: "1px solid var(--border)",
+  borderRadius: 9,
+  padding: 3,
+  gap: 2,
+};
+const seg = (on: boolean): React.CSSProperties => ({
+  font: "600 12.5px var(--font-sans), sans-serif",
+  color: on ? "#fff" : "var(--muted)",
+  background: on ? "var(--accent)" : "transparent",
+  padding: "6px 13px",
+  borderRadius: 7,
+  border: 0,
   cursor: "pointer",
 });
+const grupoChips: React.CSSProperties = { display: "flex", flexWrap: "wrap", gap: 6 };
+const chip = (on: boolean): React.CSSProperties => ({
+  font: "600 12.5px var(--font-sans), sans-serif",
+  padding: "5px 11px",
+  border: "1px solid",
+  borderColor: on ? "var(--accent)" : "var(--border)",
+  background: on ? "var(--accent)" : "var(--surface)",
+  color: on ? "#fff" : "var(--muted)",
+  borderRadius: 8,
+  cursor: "pointer",
+});
+const matrizHead: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  padding: "0 4px 10px",
+};
+const aviso = (cor: string): React.CSSProperties => ({ color: cor, fontSize: 13.5, margin: "4px 0 14px" });
